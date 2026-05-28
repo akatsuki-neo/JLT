@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,300;400;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
     :root {
       --bg-0: #f8f7ff;
@@ -49,6 +50,12 @@
       transition: transform 0.2s, box-shadow 0.2s;
     }
     .badge:hover { transform: translateY(-2px); box-shadow: 0 15px 50px rgba(139, 92, 246, 0.25); }
+    .citation-block { background: var(--glass); border: 1px solid var(--stroke); border-radius: 12px; padding: 20px; margin-top: 24px; font-family: monospace; font-size: 13px; line-height: 1.6; color: var(--text); white-space: pre-wrap; backdrop-filter: blur(12px); box-shadow: var(--shadow); }
+    .citation-block-inner { display: flex; gap: 12px; align-items: flex-start; }
+    .bibtex { flex: 1; }
+    .copy-btn { width: 36px; height: 36px; padding: 0; flex-shrink: 0; background: var(--glass); border: 1px solid var(--stroke); border-radius: 8px; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+    .copy-btn:hover { background: rgba(139, 92, 246, 0.2); }
+    .copy-btn.copied { background: rgba(5, 150, 105, 0.3); border-color: var(--accent-3); }
     h1 { font-size: clamp(32px, 4vw, 52px); line-height: 1.1; margin: 0 0 16px; }
     h2 { font-size: 26px; font-family: "Newsreader", serif; margin: 60px 0 12px; }
     p { font-family: "Newsreader", serif; font-size: 18px; line-height: 1.7; color: var(--muted); margin: 0 0 14px; }
@@ -112,6 +119,19 @@
   toggle.addEventListener('click', () => {
     document.documentElement.classList.toggle('dark');
   });
+
+  const copyBtn = document.getElementById('copyBtn');
+  const bibtex = document.querySelector('.bibtex').textContent;
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(bibtex).then(() => {
+      copyBtn.classList.add('copied');
+      copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+      setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i>';
+      }, 2000);
+    });
+  });
 </script>
 
 <main class="container">
@@ -125,10 +145,10 @@
 
     <div class="badge-row">
       <a class="badge" href="https://arxiv.org/abs/2605.27102">
-        arXiv Paper
+        <i class="fa-solid fa-file-alt"></i> arXiv Paper
       </a>
       <a class="badge" href="https://github.com/akatsuki-neo/JLT">
-        GitHub Code
+        <i class="fa-brands fa-github"></i> GitHub Code
       </a>
     </div>
 
@@ -291,7 +311,9 @@ Cov(y_x) = &Sigma;, &nbsp;&nbsp; Cov(y_&epsilon;) = I, &nbsp;&nbsp; Cov(y_v) = &
   <!-- CITATION -->
   <section>
     <h2>Citation</h2>
-    <div class="citation-block>@misc{fu2026jltcleanlatentpredictionlatent,
+    <div class="citation-block" id="citationBlock">
+      <div class="citation-block-inner">
+        <div class="bibtex">@misc{fu2026jltcleanlatentpredictionlatent,
       title={JLT: Clean-Latent Prediction in Latent Diffusion Transformers},
       author={Funing Fu and Tenghui Wang and Guanyu Zhou and Junyong Cen and Qichao Zhu},
       year={2026},
@@ -300,6 +322,11 @@ Cov(y_x) = &Sigma;, &nbsp;&nbsp; Cov(y_&epsilon;) = I, &nbsp;&nbsp; Cov(y_v) = &
       primaryClass={cs.CV},
       url={https://arxiv.org/abs/2605.27102},
 }</div>
+        <button class="copy-btn" id="copyBtn" title="Copy citation">
+          <i class="fa-regular fa-copy"></i>
+        </button>
+      </div>
+    </div>
   </section>
 
   <!-- TO DO -->
