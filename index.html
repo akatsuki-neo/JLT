@@ -6,349 +6,266 @@
   <title>JLT: Clean-Latent Prediction in Latent Diffusion Transformers</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
     :root {
-      --bg-0: #f8f7ff;
-      --bg-1: #ede9fe;
-      --glass: rgba(255, 255, 255, 0.7);
-      --stroke: rgba(139, 92, 246, 0.2);
-      --text: #1e1b4b;
-      --muted: #64748b;
-      --accent: #7c3aed;
-      --accent-2: #2563eb;
-      --accent-3: #059669;
-      --shadow: 0 10px 40px rgba(139, 92, 246, 0.15);
-    }
-    :root.dark {
-      --bg-0: #0f0a1e;
-      --bg-1: #1a1035;
-      --glass: rgba(0, 0, 0, 0.8);
-      --stroke: rgba(139, 92, 246, 0.3);
-      --text: #ede9fe;
-      --muted: #94a3b8;
-      --shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      --bg: #ffffff;
+      --bg-secondary: #f6f8fa;
+      --border: #d0d7de;
+      --text: #24292f;
+      --text-secondary: #57606a;
+      --accent: #0969da;
+      --accent-bg: #ddf4ff;
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }
     body {
-      font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
       color: var(--text);
-      min-height: 100vh;
-      background: linear-gradient(135deg, var(--bg-0), var(--bg-1));
+      background: var(--bg);
+      line-height: 1.6;
     }
     .container {
-      width: min(1000px, 92vw); margin: 0 auto; padding: 60px 0 100px;
+      max-width: 900px; margin: 0 auto; padding: 40px 20px 80px;
     }
-    .badge-row { display: inline-flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 28px; }
-    .badge {
-      font-size: 14px; letter-spacing: 0.01em;
-      padding: 8px 16px; border-radius: 999px;
-      background: var(--glass); border: 1px solid var(--stroke); color: var(--text);
-      text-decoration: none; backdrop-filter: blur(10px); box-shadow: var(--shadow);
-      transition: transform 0.2s, box-shadow 0.2s;
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 6px; font-size: 14px; font-weight: 500;
+      text-decoration: none; border: 1px solid var(--border);
+      background: var(--bg-secondary); color: var(--text);
+      transition: background 0.2s;
     }
-    .badge:hover { transform: translateY(-2px); box-shadow: 0 15px 50px rgba(139, 92, 246, 0.25); }
-    .citation-block { background: var(--glass); border: 1px solid var(--stroke); border-radius: 12px; padding: 20px; margin-top: 24px; font-family: monospace; font-size: 13px; line-height: 1.6; color: var(--text); white-space: pre-wrap; backdrop-filter: blur(12px); box-shadow: var(--shadow); }
-    .citation-block-inner { display: flex; gap: 12px; align-items: flex-start; }
-    .bibtex { flex: 1; }
-    .copy-btn { width: 36px; height: 36px; padding: 0; flex-shrink: 0; background: var(--glass); border: 1px solid var(--stroke); border-radius: 8px; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-    .copy-btn:hover { background: rgba(139, 92, 246, 0.2); }
-    .copy-btn.copied { background: rgba(5, 150, 105, 0.3); border-color: var(--accent-3); }
-    h1 { font-size: clamp(32px, 4vw, 52px); line-height: 1.1; margin: 0 0 16px; }
-    h2 { font-size: 26px; font-family: "Newsreader", serif; margin: 60px 0 12px; }
-    p { font-family: "Newsreader", serif; font-size: 18px; line-height: 1.7; color: var(--muted); margin: 0 0 14px; }
-    .hero-img { margin-top: 32px; }
-    .hero-img img { width: 100%; border-radius: 8px; box-shadow: var(--shadow); }
-    .authors { margin-top: 24px; font-family: "Newsreader", serif; font-size: 18px; color: var(--muted); text-align: center; }
+    .btn:hover { background: #f3f4f6; }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { background: #0860ca; }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
+    h1 { font-size: 40px; margin: 0 0 8px; }
+    h2 { font-size: 26px; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 40px 0 16px; }
+    h3 { font-size: 20px; margin: 24px 0 8px; }
+    p { margin: 0 0 12px; }
+    .lead { font-size: 18px; color: var(--text-secondary); margin-bottom: 24px; }
+    .hero-img { margin: 24px 0; }
+    .hero-img img { max-width: 100%; border-radius: 6px; border: 1px solid var(--border); }
+    .authors { margin: 20px 0; font-size: 15px; color: var(--text-secondary); }
     .authors a { color: var(--accent); text-decoration: none; }
     .authors a:hover { text-decoration: underline; }
-    .glass {
-      background: var(--glass); border: 1px solid var(--stroke);
-      border-radius: 12px; padding: 24px; backdrop-filter: blur(14px);
-      box-shadow: var(--shadow); margin: 20px 0;
+    .highlight-box {
+      background: var(--accent-bg); border: 1px solid rgba(9, 105, 218, 0.3);
+      border-radius: 6px; padding: 16px 20px; margin: 20px 0;
     }
-    .result-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 24px 0; }
-    .result-card {
-      background: var(--glass); border: 1px solid var(--stroke); border-radius: 12px;
-      padding: 24px; text-align: center; backdrop-filter: blur(12px); box-shadow: var(--shadow);
+    .highlight-box p { margin: 0; color: var(--text); }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+    th, td { padding: 10px 14px; text-align: left; border: 1px solid var(--border); }
+    th { background: var(--bg-secondary); font-weight: 600; }
+    tr:nth-child(even) { background: var(--bg-secondary); }
+    code { background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; border: 1px solid var(--border); }
+    .formula-box { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; margin: 16px 0; font-family: monospace; font-size: 15px; }
+    .citation-block { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; margin-top: 20px; position: relative; }
+    .citation-block pre { margin: 0; font-size: 13px; color: var(--text-secondary); white-space: pre-wrap; }
+    .copy-btn {
+      position: absolute; top: 12px; right: 12px;
+      padding: 6px 12px; font-size: 12px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text-secondary); cursor: pointer;
     }
-    .result-num { font-size: 42px; font-weight: 700; color: var(--accent); }
-    .result-label { font-size: 14px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
-    table { width: 100%; border-collapse: collapse; margin: 16px 0; }
-    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--stroke); }
-    th { font-weight: 600; color: var(--text); }
-    td { color: var(--muted); }
-    .highlight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-    .highlight-card {
-      padding: 20px; border-radius: 12px;
-      background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(37, 99, 235, 0.1));
-      border: 1px solid rgba(124, 58, 237, 0.2);
-    }
-    .highlight-card h4 { margin: 0 0 8px; font-size: 17px; color: var(--text); }
-    .highlight-card p { margin: 0; font-size: 16px; }
-    .citation-block { background: var(--glass); border: 1px solid var(--stroke); border-radius: 12px; padding: 20px; margin-top: 24px; font-family: monospace; font-size: 13px; line-height: 1.6; color: var(--text); white-space: pre-wrap; backdrop-filter: blur(12px); box-shadow: var(--shadow); }
-    .formula { background: var(--glass); border: 1px solid var(--stroke); border-radius: 8px; padding: 16px 20px; margin: 16px 0; font-family: monospace; font-size: 15px; }
-    code { background: rgba(124, 58, 237, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
-    .todo { margin: 24px 0; }
-    .todo-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 14px 18px; background: var(--glass); border: 1px solid var(--stroke);
-      border-radius: 8px; margin: 8px 0; color: var(--muted);
-    }
-    .todo-item input:checked + span { text-decoration: line-through; opacity: 0.6; }
-    .theme-toggle {
-      position: fixed; top: 20px; right: 20px; z-index: 100;
-      width: 44px; height: 44px; border-radius: 50%;
-      border: 1px solid var(--stroke); background: var(--glass);
-      backdrop-filter: blur(10px); cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .theme-toggle svg { width: 20px; height: 20px; fill: var(--text); }
+    .copy-btn:hover { background: var(--bg-secondary); }
+    .copy-btn.copied { color: #1a7f37; border-color: #1a7f37; }
+    .todo-list { list-style: none; padding: 0; margin: 16px 0; }
+    .todo-list li { padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .todo-list li:last-child { border-bottom: none; }
+    .todo-list input { margin-right: 10px; }
+    .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+    .result-card { text-align: center; padding: 20px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; }
+    .result-num { font-size: 32px; font-weight: 700; color: var(--accent); }
+    .result-label { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
   </style>
 </head>
 <body>
 
-<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-  <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-</button>
-
-<script>
-  const toggle = document.getElementById('themeToggle');
-  toggle.addEventListener('click', () => {
-    document.documentElement.classList.toggle('dark');
-  });
-
-  const copyBtn = document.getElementById('copyBtn');
-  const bibtex = document.querySelector('.bibtex').textContent;
-  copyBtn.addEventListener('click', () => {
-    navigator.clipboard.writeText(bibtex).then(() => {
-      copyBtn.classList.add('copied');
-      copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
-      setTimeout(() => {
-        copyBtn.classList.remove('copied');
-        copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i>';
-      }, 2000);
-    });
-  });
-</script>
-
 <main class="container">
 
-  <!-- HERO -->
+  <!-- HEADER -->
   <section>
     <h1>JLT</h1>
-    <p style="font-size: 22px; color: var(--text); font-family: 'Space Grotesk', sans-serif; margin-bottom: 8px;">
-      Clean-Latent Prediction in Latent Diffusion Transformers
-    </p>
+    <p class="lead">Clean-Latent Prediction in Latent Diffusion Transformers</p>
 
-    <div class="badge-row">
-      <a class="badge" href="https://arxiv.org/abs/2605.27102">
-        <i class="fa-solid fa-file-alt"></i> arXiv Paper
+    <div class="btn-row">
+      <a class="btn btn-primary" href="https://arxiv.org/abs/2605.27102">
+        <i class="fa-solid fa-file-lines"></i> Paper
       </a>
-      <a class="badge" href="https://github.com/akatsuki-neo/JLT">
-        <i class="fa-brands fa-github"></i> GitHub Code
+      <a class="btn" href="https://github.com/akatsuki-neo/JLT">
+        <i class="fa-brands fa-github"></i> Code
       </a>
     </div>
 
-    <div class="glass">
-      <p>
-        Flow matching with clean-data prediction has shown that regressing the clean point can exploit low-dimensional structure more effectively than predicting an ambient noised quantity. We ask whether this principle remains useful after images are mapped into a learned latent space.
-      </p>
-      <p>
-        We instantiate this comparison with <strong>JLT</strong>, a controlled 130M latent diffusion Transformer over frozen FLUX.2 VAE codes, and compare clean-latent prediction with a matched velocity-prediction DiT under the same representation, backbone, and training settings.
-      </p>
-      <p style="margin: 0;">
-        On ImageNet 256&times;256, <strong>JLT-B/1</strong> obtains <strong>FID-50K 2.50</strong> with classifier-free guidance, with a large matched-target gap over velocity prediction.
-      </p>
+    <div class="hero-img">
+      <img src="assets/jlt_b16_heun50_samples.png" alt="ImageNet 256x256 samples from JLT-B/1" />
     </div>
 
     <div class="authors">
+      <strong>Authors:</strong>
       <a href="#">Funing Fu</a><sup>1,*</sup>,
       <a href="#">Tenghui Wang</a><sup>2,*</sup>,
       <a href="#">Guanyu Zhou</a><sup>2</sup>,
       <a href="#">Junyong Cen</a><sup>1</sup>,
       <a href="#">Qichao Zhu</a><sup>3</sup>
       <br />
-      <span style="font-size: 0.85em; color: var(--muted);">
+      <span style="font-size: 13px;">
         <sup>1</sup>Independent Researcher &nbsp;&middot;&nbsp;
         <sup>2</sup>Wuhan University of Technology &nbsp;&middot;&nbsp;
-        <sup>3</sup>Hangzhou Jiyi AI &nbsp;&nbsp;
-        <sup>*</sup>Equal contribution
+        <sup>3</sup>Hangzhou Jiyi AI
       </span>
     </div>
 
-    <div class="hero-img">
-      <img src="assets/jlt_b16_heun50_samples.png" alt="ImageNet 256x256 samples from JLT-B/1" />
+    <div class="highlight-box">
+      <p>
+        <strong>TL;DR:</strong> We study whether predicting clean data is better than predicting velocity in latent space. Under the same architecture, training settings, and FLUX.2 VAE representation, clean-latent prediction (JLT-B/1) achieves <strong>FID 2.50</strong> vs. velocity prediction (DiT-B/1) at <strong>FID 6.56</strong> &mdash; a 62% improvement.
+      </p>
     </div>
   </section>
 
   <!-- KEY RESULTS -->
   <section>
-    <h2>Key Results</h2>
-    <div class="glass">
-      <div class="result-cards">
-        <div class="result-card">
-          <div class="result-num">2.50</div>
-          <div class="result-label">FID-50K</div>
-          <div class="result-label" style="margin-top: 4px;">JLT-B/1</div>
-        </div>
-        <div class="result-card">
-          <div class="result-num">6.56</div>
-          <div class="result-label">FID-50K</div>
-          <div class="result-label" style="margin-top: 4px;">DiT-B/1 (velocity)</div>
-        </div>
-        <div class="result-card">
-          <div class="result-num">62%</div>
-          <div class="result-label">Improvement</div>
-          <div class="result-label" style="margin-top: 4px;">x vs v at /1 scale</div>
-        </div>
+    <h2>Results</h2>
+
+    <div class="result-grid">
+      <div class="result-card">
+        <div class="result-num">2.50</div>
+        <div class="result-label">FID-50K (JLT-B/1)</div>
+      </div>
+      <div class="result-card">
+        <div class="result-num">6.56</div>
+        <div class="result-label">FID-50K (DiT-B/1)</div>
+      </div>
+      <div class="result-card">
+        <div class="result-num">62%</div>
+        <div class="result-label">Relative improvement</div>
       </div>
     </div>
+
+    <h3>Matched Target Ablation on ImageNet 256x256</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Target</th>
+          <th>FID-50K</th>
+          <th>IS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>JLT-B/1</strong></td>
+          <td>x (clean)</td>
+          <td><strong>2.56</strong></td>
+          <td>220.74</td>
+        </tr>
+        <tr>
+          <td>DiT-B/1</td>
+          <td>v (velocity)</td>
+          <td>6.56</td>
+          <td>132.12</td>
+        </tr>
+        <tr>
+          <td><strong>JLT-B/2</strong></td>
+          <td>x (clean)</td>
+          <td><strong>14.81</strong></td>
+          <td>107.29</td>
+        </tr>
+        <tr>
+          <td>DiT-B/2</td>
+          <td>v (velocity)</td>
+          <td>28.71</td>
+          <td>58.46</td>
+        </tr>
+        <tr style="background: #ddf4ff;">
+          <td><strong>JLT-B/1 (final)</strong></td>
+          <td>x (clean)</td>
+          <td><strong>2.50</strong></td>
+          <td><strong>232.51</strong></td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 
   <!-- METHOD -->
   <section>
     <h2>Method</h2>
-    <div class="glass">
-      <p><strong>Prediction Targets:</strong></p>
-      <div class="formula">
-y_x = x, &nbsp;&nbsp; y_&epsilon; = &epsilon;, &nbsp;&nbsp; y_v = x - &epsilon;
-      </div>
-      <p>
-        For fixed <em>t</em>, these targets are algebraically equivalent via affine readout. However, with finite model capacity, the direct output learned by the network changes the difficulty of the regression problem.
-      </p>
-    </div>
 
-    <div class="glass">
-      <p><strong>Target-Geometry Analysis:</strong></p>
-      <div class="formula">
-Cov(y_x) = &Sigma;, &nbsp;&nbsp; Cov(y_&epsilon;) = I, &nbsp;&nbsp; Cov(y_v) = &Sigma; + I
-      </div>
-      <p>
-        <strong>Key insight:</strong> Velocity prediction adds an isotropic unit floor to every clean-latent direction. When <strong>&Sigma;</strong> is anisotropic, directions with little clean-data variation become unit-variance directions in <em>y<sub>v</sub></em>, while clean prediction keeps their target variance small.
-      </p>
+    <h3>Prediction Targets</h3>
+    <p>Under the linear corruption path <code>z_t = t * x + (1-t) * epsilon</code>:</p>
+    <div class="formula-box">
+y_x = x, &nbsp;&nbsp; y_epsilon = epsilon, &nbsp;&nbsp; y_v = x - epsilon
     </div>
-  </section>
+    <p>These are algebraically equivalent via affine readout. But with finite model capacity, the direct output parameterization changes the regression difficulty.</p>
 
-  <!-- MAIN RESULTS TABLE -->
-  <section>
-    <h2>Matched Target Ablation</h2>
-    <div class="glass">
-      <table>
-        <thead>
-          <tr>
-            <th>Model</th>
-            <th>Target</th>
-            <th>FID-50K &darr;</th>
-            <th>IS &uarr;</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>JLT-B/1</strong></td>
-            <td>x (clean)</td>
-            <td><strong>2.56</strong></td>
-            <td>220.74</td>
-          </tr>
-          <tr>
-            <td>DiT-B/1</td>
-            <td>v (velocity)</td>
-            <td>6.56</td>
-            <td>132.12</td>
-          </tr>
-          <tr>
-            <td><strong>JLT-B/2</strong></td>
-            <td>x (clean)</td>
-            <td><strong>14.81</strong></td>
-            <td>107.29</td>
-          </tr>
-          <tr>
-            <td>DiT-B/2</td>
-            <td>v (velocity)</td>
-            <td>28.71</td>
-            <td>58.46</td>
-          </tr>
-          <tr style="border-top: 2px solid var(--stroke);">
-            <td><strong>JLT-B/1</strong> (final)</td>
-            <td>x (clean)</td>
-            <td><strong>2.50</strong></td>
-            <td><strong>232.51</strong></td>
-          </tr>
-        </tbody>
-      </table>
+    <h3>Target-Geometry Analysis</h3>
+    <p>Under local linear-Gaussian approximation <code>x ~ N(0, Sigma)</code>:</p>
+    <div class="formula-box">
+Cov(y_x) = Sigma, &nbsp;&nbsp; Cov(y_epsilon) = I, &nbsp;&nbsp; Cov(y_v) = Sigma + I
     </div>
-  </section>
+    <p><strong>Key insight:</strong> Velocity prediction adds an isotropic unit floor to every direction. When Sigma is anisotropic, low-variance directions become unit-variance in <code>y_v</code>, while clean prediction keeps their target variance small.</p>
 
-  <!-- TRAINING CURVES -->
-  <section>
-    <h2>Training Curves</h2>
-    <div class="glass">
-      <img src="assets/training_curves_compact.png" alt="Training curves" style="width:100%; border-radius: 8px;" />
+    <h3>Training Curves</h3>
+    <div class="hero-img">
+      <img src="assets/training_curves_compact.png" alt="Training curves" />
     </div>
   </section>
 
   <!-- KEY FINDINGS -->
   <section>
     <h2>Key Findings</h2>
-    <div class="highlight-grid">
-      <div class="highlight-card">
-        <h4>Target Geometry Matters</h4>
-        <p>Clean-latent prediction consistently outperforms matched velocity prediction under fixed representation, architecture, and training settings.</p>
-      </div>
-      <div class="highlight-card">
-        <h4>Mechanism</h4>
-        <p>Velocity prediction adds an isotropic covariance floor and amplifies low-variance latent directions, while clean prediction attenuates them.</p>
-      </div>
-      <div class="highlight-card">
-        <h4>Representation Independence</h4>
-        <p>The advantage is not a byproduct of a particular patch size &mdash; it holds at both /1 and /2 VAE-grid scales.</p>
-      </div>
-    </div>
+    <ol>
+      <li><strong>Target geometry matters in latent space:</strong> Clean-latent prediction consistently outperforms matched velocity prediction under fixed representation, architecture, and training settings.</li>
+      <li><strong>Mechanism:</strong> Velocity prediction adds an isotropic covariance floor and amplifies low-variance latent directions, while clean prediction attenuates them.</li>
+      <li><strong>Representation independence:</strong> The advantage holds at both /1 and /2 VAE-grid scales, not a byproduct of a particular patch size.</li>
+    </ol>
   </section>
 
   <!-- CITATION -->
   <section>
     <h2>Citation</h2>
     <div class="citation-block" id="citationBlock">
-      <div class="citation-block-inner">
-        <div class="bibtex">@misc{fu2026jltcleanlatentpredictionlatent,
-      title={JLT: Clean-Latent Prediction in Latent Diffusion Transformers},
-      author={Funing Fu and Tenghui Wang and Guanyu Zhou and Junyong Cen and Qichao Zhu},
-      year={2026},
-      eprint={2605.27102},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2605.27102},
-}</div>
-        <button class="copy-btn" id="copyBtn" title="Copy citation">
-          <i class="fa-regular fa-copy"></i>
-        </button>
-      </div>
+      <pre id="bibtex">@misc{fu2026jltcleanlatentpredictionlatent,
+  title={JLT: Clean-Latent Prediction in Latent Diffusion Transformers},
+  author={Funing Fu and Tenghui Wang and Guanyu Zhou and Junyong Cen and Qichao Zhu},
+  year={2026},
+  eprint={2605.27102},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV},
+  url={https://arxiv.org/abs/2605.27102}
+}</pre>
+      <button class="copy-btn" id="copyBtn">Copy</button>
     </div>
   </section>
 
-  <!-- TO DO -->
+  <!-- COMING SOON -->
   <section>
     <h2>Coming Soon</h2>
-    <div class="todo">
-      <div class="todo-item">
-        <input type="checkbox" disabled />
-        <span>Complete code release (training + evaluation)</span>
-      </div>
-      <div class="todo-item">
-        <input type="checkbox" disabled />
-        <span>Release pretrained checkpoints (JLT-B/1, JLT-B/2, DiT-B/1, DiT-B/2)</span>
-      </div>
-      <div class="todo-item">
-        <input type="checkbox" disabled />
-        <span>FID statistics files for evaluation</span>
-      </div>
-    </div>
+    <ul class="todo-list">
+      <li><input type="checkbox" disabled /> <span>Complete code release (training + evaluation)</span></li>
+      <li><input type="checkbox" disabled /> <span>Release pretrained checkpoints (JLT-B/1, JLT-B/2, DiT-B/1, DiT-B/2)</span></li>
+      <li><input type="checkbox" disabled /> <span>FID statistics files for evaluation</span></li>
+    </ul>
   </section>
 
 </main>
+
+<script>
+  const copyBtn = document.getElementById('copyBtn');
+  const bibtex = document.getElementById('bibtex').textContent;
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(bibtex).then(() => {
+      copyBtn.textContent = 'Copied!';
+      copyBtn.classList.add('copied');
+      setTimeout(() => {
+        copyBtn.textContent = 'Copy';
+        copyBtn.classList.remove('copied');
+      }, 2000);
+    });
+  });
+</script>
 
 </body>
 </html>
