@@ -3,7 +3,7 @@
 <div align="center">
 
 [![arXiv](https://img.shields.io/badge/arXiv%20paper-2605.27102-b31b1b.svg)](https://arxiv.org/abs/2605.27102)
-[![GitHub](https://img.shields.io/badge/GitHub-akatsuki--neo/JLT-blue.svg)](https://github.com/akatsuki-neo/JLT)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-JLT-blue.svg)](https://akatsuki-neo.github.io/JLT)
 [![HuggingFace](https://img.shields.io/badge/%F0%9F%A4%97%20Models-dawn--neo/JLT-yellow)](https://huggingface.co/dawn-neo/JLT)
 
 </div>
