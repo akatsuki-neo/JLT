@@ -42,9 +42,11 @@ def train_one_epoch(accelerator, model, model_without_ddp, data_loader, optimize
                 print("Loss is {}, stopping training".format(loss_value))
                 sys.exit(1)
 
-            optimizer.zero_grad()
             accelerator.backward(loss)
+            if accelerator.sync_gradients and getattr(args, 'grad_clip', 0.0) > 0.0:
+                accelerator.clip_grad_norm_(model.parameters(), args.grad_clip)
             optimizer.step()
+            optimizer.zero_grad()
 
         if accelerator.sync_gradients:
             optimizer_step += 1

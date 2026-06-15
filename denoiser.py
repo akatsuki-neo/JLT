@@ -48,9 +48,6 @@ class Denoiser(nn.Module):
                 model_kwargs['loop_indices'] = loop_indices
                 model_kwargs['loop_count'] = loop_count
         self.net = MODEL_REGISTRY[args.model](**model_kwargs)
-        # Keep the trainable network weights in bf16 by default; EMA is still
-        # maintained in fp32 below for numerical stability.
-        self.net = self.net.to(dtype=torch.bfloat16)
         self.img_size = args.img_size
         self.latent_size = latent_size
         self.latent_channels = self.vae.latent_channels
