@@ -8,22 +8,18 @@
 
 </div>
 
-## Overview
-
-JLT is a latent Transformer that predicts the clean VAE endpoint and converts it to velocity with a fixed affine readout. The ODE solver still consumes velocity. What changes is which quantity the network has to learn.
-
-On class-conditional ImageNet 256×256 with a frozen FLUX.2 VAE, matched clean-latent prediction improves FID-50K from 6.56 to 2.84 at Base, from 2.12 to 1.83 at Large, and from 1.60 to 1.19 at Huge. Direct clean regression at Base, without the induced time weighting, reaches 2.38.
-
 <div align="center">
-<img src="images/jlt_thesis_figure.png" width="92%">
+<img src="images/jlt_thesis_figure.png" width="99%">
 <br><br>
-The solver interface need not be the neural interface. (a) Direct velocity prediction learns the vector field internally; clean-endpoint prediction exposes the clean latent and shifts the residual response to an exact readout. (b) Under matched ImageNet 256×256 setups, this reparameterization improves FID across B/1, L/1, and H/1.
+JLT is a latent Transformer that predicts the clean VAE endpoint and converts it to velocity with a fixed affine readout. The ODE solver still consumes velocity. What changes is which quantity the network has to learn. On class-conditional ImageNet 256×256 with a frozen FLUX.2 VAE, matched clean-latent prediction improves FID-50K from 6.56 to 2.84 at Base, from 2.12 to 1.83 at Large, and from 1.60 to 1.19 at Huge. Direct clean regression at Base, without the induced time weighting, reaches 2.38.
 </div>
 
+
 <div align="center">
-<img src="images/qualitative_main_3x6.png" width="92%">
+<br>
+<img src="images/qualitative_main_3x6.png" width="99%">
 <br><br>
-Matched Base-scale samples. Random class-conditional generations from B/1 models under the same 50-step Heun sampler and CFG 2.9. Clean prediction keeps global structure and detail; direct velocity prediction more often distorts or blurs.
+Matched Base-scale samples. Random class-conditional generations from B/1 models. Clean prediction keeps global structure and detail; direct velocity prediction more often distorts or blurs.
 </div>
 
 ## Authors
