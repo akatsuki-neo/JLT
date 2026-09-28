@@ -3,8 +3,6 @@
 <div align="center">
 
 [![arXiv](https://img.shields.io/badge/arXiv%20paper-2605.27102-b31b1b.svg)](https://arxiv.org/abs/2605.27102)
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-JLT-blue.svg)](https://akatsuki-neo.github.io/JLT)
-[![HuggingFace](https://img.shields.io/badge/%F0%9F%A4%97%20Models-dawn--neo/JLT-yellow)](https://huggingface.co/dawn-neo/JLT)
 
 </div>
 
@@ -16,21 +14,12 @@
 ImageNet 256×256 samples from JLT-B/1 using 50-step Heun sampling.
 </div>
 
-## Authors
-
-[**Funing Fu**](https://github.com/chinoll)<sup>1\*</sup> · [**Tenghui Wang**](https://github.com/spawner1145)<sup>2\*</sup> · [**Guanyu Zhou**](https://the-martyr.github.io/)<sup>2</sup> · Junyong Cen<sup>1</sup> · Qichao Zhu<sup>3</sup>
-
-<sup>1</sup> Independent Researcher · <sup>2</sup> Wuhan University of Technology · <sup>3</sup> Hangzhou Jiyi AI
-
-\* Equal contribution
-
 ## Implementation
 
 ### Installation
 
 ```bash
 # Clone repository
-git clone https://github.com/akatsuki-neo/JLT.git
 cd JLT
 
 # Create conda environment
@@ -115,13 +104,9 @@ Key difference: `--flow_matching` flag enables direct velocity prediction.
 
 ### Evaluation
 
-Download the checkpoint from HuggingFace and run evaluation:
+Run evaluation with a trained checkpoint (requires pre-encoded latents):
 
 ```bash
-# Download checkpoint
-huggingface-cli download dawn-neo/JLT checkpoint-last.pth
-
-# Run evaluation (requires pre-encoded latents)
 python main_jit.py \
     --model JiT-B/1 \
     --vae_type flux2 \
@@ -243,7 +228,7 @@ Training curves for the matched target ablation. Checkpoints after initializatio
 ```bibtex
 @article{fu2026jlt,
   title={{JLT}: {C}lean-{L}atent {P}rediction in {L}atent {D}iffusion {T}ransformers},
-  author={Fu, Funing and Wang, Tenghui and Zhou, Guanyu and Cen, Junyong and Zhu, Qichao},
+  author={Anonymous},
   journal = {arXiv preprint arXiv:2605.27102},
   year={2026}
 }

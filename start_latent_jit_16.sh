@@ -10,7 +10,7 @@ GPU_IDS=${1:-0,1,2,3,4,5,6,7}
 NUM_PROCS=$(awk -F',' '{print NF}' <<< "${GPU_IDS}")
 
 RUN=latent-JiT-B-1
-OUTPUT_DIR=/mnt/raid0/JiT/output_dir/${RUN}
+OUTPUT_DIR=/path/to/jlt/output_dir/${RUN}
 mkdir -p "${OUTPUT_DIR}"
 
 CUDA_VISIBLE_DEVICES="${GPU_IDS}" \
@@ -31,6 +31,6 @@ accelerate launch \
         --cfg 2.9 --interval_min 0.1 --interval_max 1.0 \
         --eval_freq 10 --online_eval \
         --num_workers 12 \
-        --data_path /mnt/raid0/JiT/data/imagenet_latents_256 --use_latent_cache \
+        --data_path /path/to/jlt/data/imagenet_latents_256 --use_latent_cache \
         --output_dir "${OUTPUT_DIR}" \
-        --wandb_project ciallo --wandb_name "${RUN}" --wandb_mode online
+        --wandb_project jlt --wandb_name "${RUN}" --wandb_mode online
