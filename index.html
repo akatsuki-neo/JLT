@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JLT: Clean-Latent Prediction in Latent Diffusion Transformers</title>
+  <title>Equivalent Flows, Unequal Learning: Clean-Latent Prediction in Transformers</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -40,13 +40,14 @@
     .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
     .btn-primary:hover { background: #0860ca; }
     .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
-    h1 { font-size: 40px; margin: 0 0 8px; }
+    h1 { font-size: 36px; margin: 0 0 8px; }
     h2 { font-size: 26px; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 40px 0 16px; }
     h3 { font-size: 20px; margin: 24px 0 8px; }
     p { margin: 0 0 12px; }
     .lead { font-size: 18px; color: var(--text-secondary); margin-bottom: 24px; }
     .hero-img { margin: 24px 0; }
     .hero-img img { max-width: 100%; border-radius: 6px; border: 1px solid var(--border); }
+    .caption { font-size: 14px; color: var(--text-secondary); margin: 8px 0 0; }
     .authors { margin: 20px 0; font-size: 15px; color: var(--text-secondary); }
     .authors a { color: var(--accent); text-decoration: none; }
     .authors a:hover { text-decoration: underline; }
@@ -71,7 +72,7 @@
     }
     .copy-btn:hover { background: var(--bg-secondary); }
     .copy-btn.copied { color: #1a7f37; border-color: #1a7f37; }
-        .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+    .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
     .result-card { text-align: center; padding: 20px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; }
     .result-num { font-size: 32px; font-weight: 700; color: var(--accent); }
     .result-label { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
@@ -83,7 +84,7 @@
 
   <!-- HEADER -->
   <section>
-    <h1>JLT: Clean-Latent Prediction in Latent Diffusion Transformers</h1>
+    <h1>Equivalent Flows, Unequal Learning: Clean-Latent Prediction in Transformers</h1>
 
     <div class="btn-row">
       <a class="btn btn-primary" href="https://arxiv.org/abs/2605.27102">
@@ -95,10 +96,6 @@
       <a class="btn" href="https://huggingface.co/dawn-neo/JLT">
         <i class="fa-solid fa-robot"></i> HF Models
       </a>
-    </div>
-
-    <div class="hero-img">
-      <img src="assets/jlt_b16_heun50_samples.png" alt="ImageNet 256x256 samples from JLT-B/1" />
     </div>
 
     <div class="authors">
@@ -118,8 +115,18 @@
 
     <div class="highlight-box">
       <p>
-        <strong>TL;DR:</strong> We study whether predicting clean data is better than predicting velocity in latent space. Under the same architecture, training settings, and FLUX.2 VAE representation, clean-latent prediction (JLT-B/1) achieves <strong>FID 2.50</strong> vs. velocity prediction (DiT-B/1) at <strong>FID 6.56</strong> &mdash; a 62% improvement.
+        <strong>TL;DR:</strong> JLT predicts the clean VAE endpoint and converts it to velocity with a fixed affine readout. On class-conditional ImageNet 256&times;256, matched clean-latent prediction improves FID-50K from 6.56 to <strong>2.84</strong> at Base, from 2.12 to <strong>1.83</strong> at Large, and from 1.60 to <strong>1.19</strong> at Huge.
       </p>
+    </div>
+
+    <div class="hero-img">
+      <img src="assets/jlt_thesis_figure.png" alt="Clean-endpoint prediction versus direct velocity prediction" />
+      <p class="caption">The solver interface need not be the neural interface. (a) Direct velocity prediction learns the vector field internally; clean-endpoint prediction exposes the clean latent and shifts the residual response to an exact readout. (b) Under matched ImageNet 256&times;256 setups, this reparameterization improves FID across B/1, L/1, and H/1.</p>
+    </div>
+
+    <div class="hero-img">
+      <img src="assets/qualitative_main_3x6.png" alt="Matched Base-scale ImageNet samples" />
+      <p class="caption">Matched Base-scale samples. Random class-conditional generations from B/1 models under the same 50-step Heun sampler and CFG 2.9. Clean prediction keeps global structure and detail; direct velocity prediction more often distorts or blurs.</p>
     </div>
   </section>
 
@@ -127,46 +134,208 @@
   <section>
     <h2>Results</h2>
 
-    <h3>Matched Target Ablation on ImageNet 256x256</h3>
+    <div class="result-grid">
+      <div class="result-card">
+        <div class="result-num">2.84</div>
+        <div class="result-label">JLT-B/1 FID-50K</div>
+      </div>
+      <div class="result-card">
+        <div class="result-num">1.83</div>
+        <div class="result-label">JLT-L/1 FID-50K</div>
+      </div>
+      <div class="result-card">
+        <div class="result-num">1.19</div>
+        <div class="result-label">JLT-H/1 FID-50K</div>
+      </div>
+    </div>
+
+    <h3>Matched Prediction Target</h3>
+    <p>Within each scale, the VAE, architecture, velocity loss, schedule, and sampler stay fixed. Only the network output changes. The Huge row uses each model's best FID instead of the shared CFG 2.9 point.</p>
     <table>
       <thead>
         <tr>
-          <th>Model</th>
-          <th>Target</th>
+          <th>Scale</th>
+          <th>Network predicts</th>
+          <th>Loss</th>
           <th>FID-50K</th>
           <th>IS</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td><strong>JLT-B/1</strong></td>
-          <td>x (clean)</td>
-          <td><strong>2.56</strong></td>
-          <td>220.74</td>
+          <td>B/1</td>
+          <td>velocity v</td>
+          <td>L<sub>v</sub></td>
+          <td>6.56</td>
+          <td>132.12</td>
+        </tr>
+        <tr style="background: #ddf4ff;">
+          <td><strong>B/1</strong></td>
+          <td><strong>clean latent x</strong></td>
+          <td>L<sub>v</sub></td>
+          <td><strong>2.84</strong></td>
+          <td><strong>204.83</strong></td>
         </tr>
         <tr>
-          <td>DiT-B/1</td>
-          <td>v (velocity)</td>
+          <td>L/1</td>
+          <td>velocity v</td>
+          <td>L<sub>v</sub></td>
+          <td>2.12</td>
+          <td>236.21</td>
+        </tr>
+        <tr style="background: #ddf4ff;">
+          <td><strong>L/1</strong></td>
+          <td><strong>clean latent x</strong></td>
+          <td>L<sub>v</sub></td>
+          <td><strong>1.83</strong></td>
+          <td><strong>301.07</strong></td>
+        </tr>
+        <tr>
+          <td>H/1</td>
+          <td>velocity v</td>
+          <td>L<sub>v</sub></td>
+          <td>1.60</td>
+          <td><strong>327.41</strong></td>
+        </tr>
+        <tr style="background: #ddf4ff;">
+          <td><strong>H/1</strong></td>
+          <td><strong>clean latent x</strong></td>
+          <td>L<sub>v</sub></td>
+          <td><strong>1.19</strong></td>
+          <td>271.96</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="caption">Clean prediction cuts FID by 3.72 (56.7%) at Base and 0.29 (13.7%) at Large. The Huge number is the FID-optimal CFG 2.2 point; the same sweep peaks at IS 334.21 at CFG 3.0.</p>
+
+    <div class="hero-img">
+      <img src="assets/training_dynamics.png" alt="Matched training curves" />
+      <p class="caption">Matched training curves. Clean prediction stays ahead at every measured checkpoint: B/1 ends at 2.84 versus 6.56, and L/1 ends at 1.83 versus 2.12.</p>
+    </div>
+
+    <h3>Loss Weighting</h3>
+    <p>Holding the clean output fixed, velocity-space MSE induces a (1-t)<sup>-2</sup> weight on the clean error. Replacing it with unweighted clean MSE does not remove the gain.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Predicts</th>
+          <th>Loss</th>
+          <th>Weight</th>
+          <th>FID-50K</th>
+          <th>IS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>B/1 velocity</td>
+          <td>v</td>
+          <td>L<sub>v</sub></td>
+          <td>&mdash;</td>
           <td>6.56</td>
           <td>132.12</td>
         </tr>
         <tr>
-          <td><strong>JLT-B/2</strong></td>
-          <td>x (clean)</td>
-          <td><strong>14.81</strong></td>
-          <td>107.29</td>
-        </tr>
-        <tr>
-          <td>DiT-B/2</td>
-          <td>v (velocity)</td>
-          <td>28.71</td>
-          <td>58.46</td>
+          <td>JLT-B/1</td>
+          <td>x</td>
+          <td>L<sub>v</sub></td>
+          <td>(1-t)<sup>-2</sup></td>
+          <td>2.84</td>
+          <td>204.83</td>
         </tr>
         <tr style="background: #ddf4ff;">
-          <td><strong>JLT-B/1 (final)</strong></td>
-          <td>x (clean)</td>
-          <td><strong>2.50</strong></td>
-          <td><strong>232.51</strong></td>
+          <td><strong>JLT-B/1</strong></td>
+          <td>x</td>
+          <td>L<sub>x</sub></td>
+          <td>1</td>
+          <td><strong>2.38</strong></td>
+          <td><strong>256.88</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="hero-img">
+      <img src="assets/loss_weighting_dynamics.png" alt="Base-scale loss ablation" />
+      <p class="caption">Base-scale loss ablation. Both clean objectives beat direct velocity throughout training. Unweighted clean MSE finishes at FID 2.38 and IS 256.88.</p>
+    </div>
+
+    <h3>Reference Models</h3>
+    <p>Guided ImageNet 256&times;256 numbers below are taken from the cited reports. JLT-H/1 is the FID-optimal CFG 2.2 evaluation and does not use an external representation-alignment loss.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Space</th>
+          <th>Extra rep.</th>
+          <th>Params</th>
+          <th>FID-50K</th>
+          <th>IS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>DiT-XL/2</td>
+          <td>VAE</td>
+          <td>&mdash;</td>
+          <td>675M</td>
+          <td>2.27</td>
+          <td>278.20</td>
+        </tr>
+        <tr>
+          <td>SiT-XL/2</td>
+          <td>VAE</td>
+          <td>&mdash;</td>
+          <td>675M</td>
+          <td>2.06</td>
+          <td>277.50</td>
+        </tr>
+        <tr>
+          <td>REPA-SiT-XL/2</td>
+          <td>VAE</td>
+          <td>DINOv2</td>
+          <td>675M</td>
+          <td>1.42</td>
+          <td>305.70</td>
+        </tr>
+        <tr>
+          <td>MDTv2-XL/2</td>
+          <td>VAE</td>
+          <td>&mdash;</td>
+          <td>675.8M</td>
+          <td>1.58</td>
+          <td>314.73</td>
+        </tr>
+        <tr>
+          <td>DiffiT</td>
+          <td>VAE</td>
+          <td>&mdash;</td>
+          <td>561M</td>
+          <td>1.73</td>
+          <td>276.49</td>
+        </tr>
+        <tr>
+          <td>JiT-H/16</td>
+          <td>pixel</td>
+          <td>&mdash;</td>
+          <td>953M</td>
+          <td>1.86</td>
+          <td>303.40</td>
+        </tr>
+        <tr>
+          <td>RiT</td>
+          <td>DINOv2</td>
+          <td>DINOv2</td>
+          <td>676M</td>
+          <td><strong>1.14</strong></td>
+          <td>&mdash;</td>
+        </tr>
+        <tr style="background: #ddf4ff;">
+          <td><strong>JLT-H/1</strong></td>
+          <td>VAE</td>
+          <td>&mdash;</td>
+          <td>951.3M</td>
+          <td>1.19</td>
+          <td>271.96</td>
         </tr>
       </tbody>
     </table>
@@ -177,32 +346,87 @@
     <h2>Method</h2>
 
     <h3>Prediction Targets</h3>
-    <p>Under the linear corruption path <code>z_t = t * x + (1-t) * epsilon</code>:</p>
+    <p>Images are encoded by a frozen VAE. The linear path is <code>z_t = t * x + (1-t) * epsilon</code>, with sample-wise velocity <code>v = x - epsilon</code>. A clean prediction converts to the same velocity by</p>
     <div class="formula-box">
-y_x = x, &nbsp;&nbsp; y_epsilon = epsilon, &nbsp;&nbsp; y_v = x - epsilon
+v_hat = (x_hat - z_t) / (1 - t)
     </div>
-    <p>These are algebraically equivalent via affine readout. But with finite model capacity, the direct output parameterization changes the regression difficulty.</p>
+    <p>For squared error, the optimal clean and velocity predictors are algebraically equivalent. A finite Transformer is not: predicting v has to represent the input residual and time-dependent gain internally, while predicting x leaves that response to the readout.</p>
 
-    <h3>Target-Geometry Analysis</h3>
-    <p>Under local linear-Gaussian approximation <code>x ~ N(0, Sigma)</code>:</p>
-    <div class="formula-box">
-Cov(y_x) = Sigma, &nbsp;&nbsp; Cov(y_epsilon) = I, &nbsp;&nbsp; Cov(y_v) = Sigma + I
-    </div>
-    <p><strong>Key insight:</strong> Velocity prediction adds an isotropic unit floor to every direction. When Sigma is anisotropic, low-variance directions become unit-variance in <code>y_v</code>, while clean prediction keeps their target variance small.</p>
+    <h3>Target Geometry</h3>
+    <p>Under a local Gaussian model, velocity adds a unit floor to every latent direction. Measured FLUX.2 channel spectra match that shift.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Target</th>
+          <th>Eigenvalue span</th>
+          <th>Condition number</th>
+          <th>Effective rank</th>
+          <th>90% variance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Clean</td>
+          <td>10.50 to 0.21</td>
+          <td>50.36</td>
+          <td>35.10</td>
+          <td>83 directions</td>
+        </tr>
+        <tr>
+          <td>Velocity</td>
+          <td>11.50 to 1.21</td>
+          <td>9.52</td>
+          <td>78.97</td>
+          <td>109 directions</td>
+        </tr>
+      </tbody>
+    </table>
 
-    <h3>Training Curves</h3>
-    <div class="hero-img">
-      <img src="assets/training_curves_compact.png" alt="Training curves" />
-    </div>
+    <h3>Architecture</h3>
+    <p>Parameter counts exclude the frozen VAE. Blocks use self-attention, SwiGLU, RMSNorm, rotary embeddings, and adaptive time/class modulation. Paper runs use patch size 1, so the 16&times;16 latent grid stays 256 tokens.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Depth</th>
+          <th>Width</th>
+          <th>Heads</th>
+          <th>Params</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>JLT-B/1</td>
+          <td>12</td>
+          <td>768</td>
+          <td>12</td>
+          <td>130.5M</td>
+        </tr>
+        <tr>
+          <td>JLT-L/1</td>
+          <td>24</td>
+          <td>1024</td>
+          <td>16</td>
+          <td>458.1M</td>
+        </tr>
+        <tr>
+          <td>JLT-H/1</td>
+          <td>32</td>
+          <td>1280</td>
+          <td>16</td>
+          <td>951.3M</td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 
   <!-- KEY FINDINGS -->
   <section>
-    <h2>Key Findings</h2>
+    <h2>Other Checks</h2>
     <ol>
-      <li><strong>Target geometry matters in latent space:</strong> Clean-latent prediction consistently outperforms matched velocity prediction under fixed representation, architecture, and training settings.</li>
-      <li><strong>Mechanism:</strong> Velocity prediction adds an isotropic covariance floor and amplifies low-variance latent directions, while clean prediction attenuates them.</li>
-      <li><strong>Representation independence:</strong> The advantage holds at both /1 and /2 VAE-grid scales, not a byproduct of a particular patch size.</li>
+      <li><strong>Qwen-VAE, matched B/1:</strong> The same clean-versus-velocity comparison at CFG 2.9 ends at FID 6.54 versus 6.85 after 250K steps. Clean prediction is lower at 150K, 200K, and 250K.</li>
+      <li><strong>CFG sweeps:</strong> JLT-B/1 FID falls through the grid and is 2.70 at CFG 3.0. JLT-H/1 FID is lowest at 1.19 when CFG is 2.2.</li>
+      <li><strong>Loss weighting:</strong> Unweighted clean MSE at Base finishes at FID 2.38 and IS 256.88, so the gain is not only the induced time weight.</li>
     </ol>
   </section>
 
@@ -210,11 +434,14 @@ Cov(y_x) = Sigma, &nbsp;&nbsp; Cov(y_epsilon) = I, &nbsp;&nbsp; Cov(y_v) = Sigma
   <section>
     <h2>Citation</h2>
     <div class="citation-block" id="citationBlock">
-      <pre id="bibtex">@article{fu2026jlt,
-  title={{JLT}: {C}lean-{L}atent {P}rediction in {L}atent {D}iffusion {T}ransformers},
-  author={Fu, Funing and Wang, Tenghui and Zhou, Guanyu and Cen, Junyong and Zhu, Qichao},
-  journal = {arXiv preprint arXiv:2605.27102},
-  year={2026}
+      <pre id="bibtex">@misc{fu2026jltcleanlatentpredictionlatent,
+  title={JLT: Clean-Latent Prediction in Latent Diffusion Transformers},
+  author={Funing Fu and Tenghui Wang and Guanyu Zhou and Junyong Cen and Qichao Zhu},
+  year={2026},
+  eprint={2605.27102},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV},
+  url={https://arxiv.org/abs/2605.27102}
 }</pre>
       <button class="copy-btn" id="copyBtn">Copy</button>
     </div>
