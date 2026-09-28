@@ -28,9 +28,9 @@ Matched Base-scale samples. Random class-conditional generations from B/1 models
 
 ## Authors
 
-**Funing Fu**<sup>1,*</sup> · **Tenghui Wang**<sup>2,*</sup> · **Guanyu Zhou**<sup>2</sup> · **Junyong Cen**<sup>1</sup> · **Qichao Zhu**<sup>3</sup>
+**Funing Fu**<sup>1,*</sup> · **Tenghui Wang**<sup>2,*</sup> · **Guanyu Zhou**<sup>3</sup> · **Junyong Cen**<sup>1</sup> · **Qichao Zhu**<sup>4</sup>
 
-<sup>1</sup> Independent Researcher · <sup>2</sup> Wuhan University of Technology · <sup>3</sup> Hangzhou Jiyi AI
+<sup>1</sup> Independent Researcher · <sup>2</sup> Wuhan University of Technology · <sup>3</sup> Technology Innovation Institute · <sup>4</sup> Hangzhou Jiyi AI
 
 <sup>*</sup> Equal contribution
 
