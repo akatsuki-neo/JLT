@@ -182,7 +182,6 @@ Guided ImageNet 256×256 numbers below are taken from the cited reports. JLT-H/1
 
 - **Qwen-VAE, matched B/1.** The same clean-versus-velocity comparison at CFG 2.9 ends at FID 6.54 versus 6.85 after 250K steps. Clean prediction is lower at 150K, 200K, and 250K.
 - **CFG sweeps.** JLT-B/1 FID falls through the grid and is 2.70 at CFG 3.0. JLT-H/1 FID is lowest at 1.19 when CFG is 2.2.
-- **Patch 2.** Shortening the 16×16 grid to 64 tokens is weaker: JLT-B/2 with clean MSE reaches FID 12.78, JLT-L/2 reaches 3.15, and JLT-H/2 reaches 2.04.
 
 ## Acknowledgements
 
