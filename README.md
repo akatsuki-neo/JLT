@@ -1,17 +1,21 @@
-# JLT: Clean-Latent Prediction in Latent Diffusion Transformers
-
-<div align="center">
-
-[![arXiv](https://img.shields.io/badge/arXiv%20paper-2605.27102-b31b1b.svg)](https://arxiv.org/abs/2605.27102)
-
-</div>
+# Equivalent Flows, Unequal Learning: Clean-Latent Prediction in Transformers
 
 ## Overview
 
+JLT is a latent Transformer that predicts the clean VAE endpoint and converts it to velocity with a fixed affine readout. The ODE solver still consumes velocity. What changes is which quantity the network has to learn.
+
+On class-conditional ImageNet 256×256 with a frozen FLUX.2 VAE, matched clean-latent prediction improves FID-50K from 6.56 to 2.84 at Base, from 2.12 to 1.83 at Large, and from 1.60 to 1.19 at Huge. Direct clean regression at Base, without the induced time weighting, reaches 2.38.
+
 <div align="center">
-<img src="images/jlt_b16_heun50_samples.png" width="75%">
+<img src="images/jlt_thesis_figure.png" width="92%">
 <br><br>
-ImageNet 256×256 samples from JLT-B/1 using 50-step Heun sampling.
+The solver interface need not be the neural interface. (a) Direct velocity prediction learns the vector field internally; clean-endpoint prediction exposes the clean latent and shifts the residual response to an exact readout. (b) Under matched ImageNet 256×256 setups, this reparameterization improves FID across B/1, L/1, and H/1.
+</div>
+
+<div align="center">
+<img src="images/qualitative_main_3x6.png" width="92%">
+<br><br>
+Matched Base-scale samples. Random class-conditional generations from B/1 models under the same 50-step Heun sampler and CFG 2.9. Clean prediction keeps global structure and detail; direct velocity prediction more often distorts or blurs.
 </div>
 
 ## Implementation
@@ -19,29 +23,18 @@ ImageNet 256×256 samples from JLT-B/1 using 50-step Heun sampling.
 ### Installation
 
 ```bash
-# Clone repository
 cd JLT
 
-# Create conda environment
 conda env create -f environment.yaml
 conda activate jit
 
-# Install accelerate (required for distributed training)
 pip install accelerate
-
-# Install additional dependencies
-pip install torch-fidelity  # for FID evaluation
+pip install torch-fidelity
 ```
 
 ### Data Preparation
 
-#### 1. Download ImageNet
-
-Download ImageNet train/val from [image-net.org](https://image-net.org/download.php) and extract to a directory.
-
-#### 2. Encode Images to FLUX.2 Latents
-
-Encode ImageNet to latent shards for efficient training:
+Download ImageNet train/val from [image-net.org](https://image-net.org/download.php), then encode it with the frozen FLUX.2 VAE:
 
 ```bash
 python prepare_ref.py \
@@ -54,47 +47,29 @@ python prepare_ref.py \
     --num_workers 8
 ```
 
-This produces safetensor latent shards in `/path/to/imagenet_latents_256`.
+### Training
 
-### Running Experiments
-
-#### JLT-B/1 (Clean-Latent Prediction, /1 scale)
+The checked-in launcher trains JLT-B/1 (clean latent, patch 1 on the 16×16 FLUX grid):
 
 ```bash
 ./start_latent_jit_16.sh [GPU_IDS]
 
-# Example: use GPUs 0-3 only
+# Example: GPUs 0-3
 ./start_latent_jit_16.sh 0,1,2,3
 ```
 
-Key settings:
-- Model: JiT-B/1 (patch 1, 16x16 latent grid)
-- Batch size: 256 × 8 GPUs × 2 accum = 4096 effective
-- Epochs: 40 (with 5 warmup)
-- Learning rate: 5e-5 base LR
+That script uses batch size 256, gradient accumulation 2, base learning rate 5e-5, CFG 2.9, and 40 epochs. The reported paper runs use the same optimizer recipe for 200 epochs (about 250K steps) at Base, Large, and Huge.
 
-#### JLT-B/2 (Clean-Latent Prediction, /2 scale)
-
-```bash
-./start_latent_jit_32.sh [GPU_IDS]
-```
-
-#### DiT-B/2 Baseline (Velocity Prediction)
-
-```bash
-./start_latent_v_32.sh [GPU_IDS]
-```
-
-Key difference: `--flow_matching` flag enables direct velocity prediction.
+`--flow_matching` switches the network to direct velocity prediction. The patch-2 launcher is `start_latent_jit_32.sh`.
 
 ### Key Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `--model` | Model variant: `JiT-B/1` or `JiT-B/2` |
-| `--vae_type` | `flux2` for FLUX.2 latent space |
-| `--flow_matching` | Enable velocity prediction (DiT baseline) |
-| `--batch_size` | Micro batch per GPU |
+| `--model` | Architecture name: `JiT-B/1`, `JiT-B/2`, `JiT-B/16` |
+| `--vae_type` | `flux2` for the FLUX.2 latent space |
+| `--flow_matching` | Predict velocity directly instead of the clean latent |
+| `--batch_size` | Micro-batch per GPU |
 | `--blr` | Base learning rate |
 | `--epochs` | Training epochs |
 | `--cfg` | Classifier-free guidance scale |
@@ -103,8 +78,6 @@ Key difference: `--flow_matching` flag enables direct velocity prediction.
 | `--vae_model_name_or_path` | FLUX.2 VAE path or HuggingFace repo |
 
 ### Evaluation
-
-Run evaluation with a trained checkpoint (requires pre-encoded latents):
 
 ```bash
 python main_jit.py \
@@ -123,119 +96,106 @@ python main_jit.py \
     --output_dir ./eval_output
 ```
 
-For FID evaluation, pre-encoded ImageNet latents and reference statistics are required. See [torch-fidelity](https://github.com/toshas/torch-fidelity) for details.
+FID uses 50K samples. See [torch-fidelity](https://github.com/toshas/torch-fidelity).
 
 ## Method
 
-### Formulation and Prediction Targets
+Images are encoded by a frozen VAE. The linear path is
 
-Let $x \in \mathbb{R}^D$ denote the clean latent produced by a fixed encoder, and let $\epsilon \sim \mathcal{N}(0, I)$ denote Gaussian noise in the same coordinate system. We use the linear corruption path:
+$$z_t = t x + (1 - t) \epsilon, \quad t \in [0, 1],$$
 
-$$z_t = t \cdot x + (1 - t) \cdot \epsilon, \quad t \in [0, 1]$$
+with sample-wise velocity $v = x - \epsilon$. A clean prediction converts to the same velocity by
 
-The three common direct targets are:
+$$\hat v = \frac{\hat x - z_t}{1 - t}.$$
 
-$$y_x = x, \quad y_\epsilon = \epsilon, \quad y_v = x - \epsilon$$
+For squared error, the optimal clean and velocity predictors are algebraically equivalent. A finite Transformer is not: predicting $v$ has to represent the input residual and time-dependent gain internally, while predicting $x$ leaves that response to the readout.
 
-For fixed $t$, $x$-, $\epsilon$-, and $v$-parameterizations are algebraically equivalent: once a model predicts any one target, the other endpoint variables can be recovered by an affine readout from the predicted target and the known mixture $z_t$.
-
-### Target-Geometry Analysis
-
-**Local linear-Gaussian assumption:** $x \sim \mathcal{N}(0, \Sigma)$ with independent noise $\epsilon \sim \mathcal{N}(0, I)$. The marginal target covariances are:
-
-$$
-\text{Cov}(y_x) = \Sigma, \quad \text{Cov}(y_\epsilon) = I, \quad \text{Cov}(y_v) = \Sigma + I
-$$
-
-**Key insight:** Velocity prediction adds the same isotropic unit floor to every clean-latent direction. If $\Sigma$ is anisotropic, directions with little clean-data variation become unit-variance directions in $y_v$, while clean prediction keeps their target variance small.
-
-**Conditional ambiguity gap:**
-
-$$\frac{\text{Var}(v_i | z_i)}{\text{Var}(x_i | z_i)} = \frac{1}{(1-t)^2} > 1$$
-
-When $\lambda_i \rightarrow 0$ (low-variance directions):
-
-| Prediction Target | Coefficient Tends To |
-|-------------------|---------------------|
-| Clean ($x$) | $0$ (attenuated) |
-| Velocity ($v$) | $-\frac{1}{1-t}$ (amplified) |
+Under a local Gaussian model, velocity also adds a unit floor to every latent direction. Measured FLUX.2 channel spectra match that shift. Clean eigenvalues span 10.50 to 0.21 (condition number 50.36, effective rank 35.10). Velocity eigenvalues span 11.50 to 1.21 (condition number 9.52, effective rank 78.97). Capturing 90% of target variance takes 83 clean directions and 109 velocity directions.
 
 ## Architecture
 
-JLT is a Base-scale latent Transformer following JiT-B/16 for architectural comparability:
+| Model | Depth | Width | Heads | Params |
+|-------|------:|------:|------:|-------:|
+| JLT-B/1 | 12 | 768 | 12 | 130.5M |
+| JLT-L/1 | 24 | 1024 | 16 | 458.1M |
+| JLT-H/1 | 32 | 1280 | 16 | 951.3M |
 
-| Component | Specification |
-|-----------|--------------|
-| Transformer Blocks | 12 |
-| Hidden Dimension | 768 |
-| Attention Heads | 12 |
-| Bottleneck Patch Embedding | 128-dim |
-| Parameters | 130M |
-| Tokenizer | FLUX.2 VAE (frozen) |
+Parameter counts exclude the frozen VAE. Blocks use self-attention, SwiGLU, RMSNorm, rotary embeddings, and adaptive time/class modulation. The paper runs use patch size 1, so the 16×16 latent grid stays 256 tokens.
 
 ## Experiments
 
-### Matched Target Ablation
+Class-conditional ImageNet-1K at 256×256. Unless noted, models train for 200 epochs, sample with 50-step Heun, and use CFG 2.9 over $[0.1, 1]$. Time is drawn from $\mathrm{logit}(t) \sim \mathcal{N}(-0.8, 0.8^2)$. The Huge comparison below uses each model's best FID instead of the shared CFG 2.9 point.
+
+### Matched Prediction Target
+
+Within each scale, the VAE, architecture, velocity loss, schedule, and sampler stay fixed. Only the network output changes.
+
+| Scale | Network predicts | Loss | FID-50K ↓ | IS ↑ |
+|-------|------------------|------|----------:|-----:|
+| B/1 | velocity $v$ | $\mathcal{L}_v$ | 6.56 | 132.12 |
+| B/1 | **clean latent $x$** | $\mathcal{L}_v$ | **2.84** | **204.83** |
+| L/1 | velocity $v$ | $\mathcal{L}_v$ | 2.12 | 236.21 |
+| L/1 | **clean latent $x$** | $\mathcal{L}_v$ | **1.83** | **301.07** |
+| H/1 | velocity $v$ | $\mathcal{L}_v$ | 1.60 | **327.41** |
+| H/1 | **clean latent $x$** | $\mathcal{L}_v$ | **1.19** | 271.96 |
+
+Clean prediction cuts FID by 3.72 (56.7%) at Base and 0.29 (13.7%) at Large. At 951.3M parameters it reaches 1.19. That Huge number is the FID-optimal CFG 2.2 point, paired with IS 271.96; the same sweep peaks at IS 334.21 at CFG 3.0.
 
 <div align="center">
-
-| Model | Target | Guidance | FID-50K ↓ | IS ↑ |
-|-------|--------|----------|-----------|------|
-| **JLT-B/1** | $x$ (clean) | w/ CFG | **2.56** | 220.74 |
-| DiT-B/1 | $v$ (velocity) | w/ CFG | 6.56 | 132.12 |
-| **JLT-B/2** | $x$ (clean) | w/ CFG | **14.81** | 107.29 |
-| DiT-B/2 | $v$ (velocity) | w/ CFG | 28.71 | 58.46 |
-| **JLT-B/1** (final) | $x$ | w/ CFG | **2.50** | **232.51** |
-| JLT-B/1 | $x$ | w/o CFG | 14.00 | -- |
-
-*Matched latent target ablation on ImageNet 256×256. The upper block is the controlled target comparison; the lower block reports the selected final JLT-B/1 evaluation.*
-
-</div>
-
-### Comparison with Representative Baselines
-
-<div align="center">
-
-| Model | Space | Params | Train | FID-50K ↓ | IS ↑ |
-|-------|-------|--------|-------|-----------|------|
-| **JLT-B/1** | FLUX.2 | 130M | 250K/200ep | **2.50** | **232.51** |
-| JiT-L/16 | pixel | 459M | 200ep | 2.79 | -- |
-| LDM | latent | -- | -- | 3.60 | -- |
-| JiT-B/16 | pixel | 131M | 200ep | 4.37 | -- |
-
-*Guided ImageNet 256×256 comparison with representative baselines.*
-
-</div>
-
-### Training Curves
-
-<div align="center">
-<img src="images/training_curves_compact.png" width="80%">
+<img src="images/training_dynamics.png" width="92%">
 <br><br>
-Training curves for the matched target ablation. Checkpoints after initialization are evaluated every 40 epochs; clean-latent variants keep lower FID and higher Inception Score than velocity counterparts.
+Matched training curves. Clean prediction stays ahead at every measured checkpoint: B/1 ends at 2.84 versus 6.56, and L/1 ends at 1.83 versus 2.12.
 </div>
 
-## Key Findings
+### Loss Weighting
 
-1. **Target geometry matters in latent space:** Clean-latent prediction consistently outperforms matched velocity prediction under fixed representation, architecture, and training settings.
+Holding the clean output fixed, velocity-space MSE induces a $(1-t)^{-2}$ weight on the clean error. Replacing it with unweighted clean MSE does not remove the gain.
 
-2. **Mechanism:** Velocity prediction adds an isotropic covariance floor and amplifies low-variance latent directions, while clean prediction attenuates them.
+| Model | Predicts | Loss | Weight on $\|\hat x - x\|_2^2$ | FID-50K ↓ | IS ↑ |
+|-------|----------|------|-------------------------------|----------:|-----:|
+| B/1 velocity | $v$ | $\mathcal{L}_v$ | — | 6.56 | 132.12 |
+| JLT-B/1 | $x$ | $\mathcal{L}_v$ | $(1-t)^{-2}$ | 2.84 | 204.83 |
+| JLT-B/1 | $x$ | $\mathcal{L}_x$ | $1$ | **2.38** | **256.88** |
 
-3. **Representation independence:** The advantage is not a byproduct of using a particular patch size — it holds at both /1 and /2 VAE-grid scales.
+<div align="center">
+<img src="images/loss_weighting_dynamics.png" width="82%">
+<br><br>
+Base-scale loss ablation. Both clean objectives beat direct velocity throughout training. Unweighted clean MSE finishes at FID 2.38 and IS 256.88.
+</div>
+
+### Reference Models
+
+Guided ImageNet 256×256 numbers below are taken from the cited reports. JLT-H/1 is the FID-optimal CFG 2.2 evaluation and does not use an external representation-alignment loss.
+
+| Model | Space | Extra rep. | Params | FID-50K ↓ | IS ↑ |
+|-------|-------|------------|-------:|----------:|-----:|
+| DiT-XL/2 | VAE | — | 675M | 2.27 | 278.20 |
+| SiT-XL/2 | VAE | — | 675M | 2.06 | 277.50 |
+| REPA-SiT-XL/2 | VAE | DINOv2 | 675M | 1.42 | 305.70 |
+| MDTv2-XL/2 | VAE | — | 675.8M | 1.58 | 314.73 |
+| DiffiT | VAE | — | 561M | 1.73 | 276.49 |
+| JiT-H/16 | pixel | — | 953M | 1.86 | 303.40 |
+| RiT | DINOv2 | DINOv2 | 676M | **1.14** | — |
+| **JLT-H/1** | FLUX.2 VAE | — | 951.3M | 1.19 | 271.96 |
+
+### Other Checks
+
+- **Qwen-VAE, matched B/1.** The same clean-versus-velocity comparison at CFG 2.9 ends at FID 6.54 versus 6.85 after 250K steps. Clean prediction is lower at 150K, 200K, and 250K.
+- **CFG sweeps.** JLT-B/1 FID falls through the grid and is 2.70 at CFG 3.0. JLT-H/1 FID is lowest at 1.19 when CFG is 2.2.
+- **Patch 2.** Shortening the 16×16 grid to 64 tokens is weaker: JLT-B/2 with clean MSE reaches FID 12.78, JLT-L/2 reaches 3.15, and JLT-H/2 reaches 2.04.
 
 ## Citation
 
 ```bibtex
-@article{fu2026jlt,
-  title={{JLT}: {C}lean-{L}atent {P}rediction in {L}atent {D}iffusion {T}ransformers},
+@article{anonymous2026jlt,
+  title={Equivalent Flows, Unequal Learning: Clean-Latent Prediction in Transformers},
   author={Anonymous},
-  journal = {arXiv preprint arXiv:2605.27102},
   year={2026}
 }
 ```
 
 ## Acknowledgements
 
-- Li & He. "Back to Basics: Let Denoising Generative Models Denoise." arXiv:2511.13720, 2025.
-- JiT GitHub: https://github.com/LTH14/JiT
+- Li & He. "Back to Basics: Let Denoising Generative Models Denoise." 2025.
+- JiT
 - Black Forest Labs. FLUX.2 Small Decoder. HuggingFace, 2026.
