@@ -105,7 +105,7 @@ class Attention(nn.Module):
         self.k_norm = RMSNorm(head_dim) if qk_norm else nn.Identity()
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
-        # flash_attn.cute does not expose a dropout_p knob; JiT defaults to 0 anyway.
+        # flash_attn.cute does not expose a dropout_p knob; JLT defaults to 0 anyway.
         assert attn_drop == 0.0, "attn_drop is unsupported by flash_attn.cute; leave it at 0.0"
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
@@ -163,7 +163,7 @@ class SwiGLUFFN(nn.Module):
 
 class FinalLayer(nn.Module):
     """
-    The final layer of JiT.
+    The final layer of JLT.
     """
     def __init__(self, hidden_size, patch_size, out_channels):
         super().__init__()
@@ -181,7 +181,7 @@ class FinalLayer(nn.Module):
         return x
 
 
-class JiTBlock(nn.Module):
+class JLTBlock(nn.Module):
     def __init__(self, hidden_size, num_heads, mlp_ratio=4.0, attn_drop=0.0, proj_drop=0.0):
         super().__init__()
         self.norm1 = RMSNorm(hidden_size, eps=1e-6)
@@ -205,9 +205,14 @@ class JiTBlock(nn.Module):
         return x
 
 
-class JiT(nn.Module):
+# Alias for backward compatibility
+JiTBlock = JLTBlock
+JiT = JLT
+
+
+class JLT(nn.Module):
     """
-    Just image Transformer.
+    Just Latent Transformer (JLT).
     """
     def __init__(
         self,
@@ -270,7 +275,7 @@ class JiT(nn.Module):
 
         # transformer
         self.blocks = nn.ModuleList([
-            JiTBlock(hidden_size, num_heads, mlp_ratio=mlp_ratio,
+            JLTBlock(hidden_size, num_heads, mlp_ratio=mlp_ratio,
                      attn_drop=attn_drop if (depth // 4 * 3 > i >= depth // 4) else 0.0,
                      proj_drop=proj_drop if (depth // 4 * 3 > i >= depth // 4) else 0.0)
             for i in range(depth)
@@ -340,7 +345,7 @@ class JiT(nn.Module):
             y_emb = y_emb.unsqueeze(1)
         c = t_emb + y_emb
 
-        # forward JiT
+        # forward JLT
         x = self.x_embedder(x)
         if self.training and self.mask_prob > 0.0 and self.mask_ratio > 0.0:
             B, N, _ = x.shape
@@ -371,38 +376,72 @@ class JiT(nn.Module):
         return output
 
 
-def JiT_B_1(**kwargs):
-    return JiT(depth=12, hidden_size=768, num_heads=12, patch_size=1, **kwargs)
+def JLT_B_1(**kwargs):
+    return JLT(depth=12, hidden_size=768, num_heads=12, patch_size=1, **kwargs)
 
-def JiT_B_2(**kwargs):
-    return JiT(depth=12, hidden_size=768, num_heads=12, patch_size=2, **kwargs)
+def JLT_B_2(**kwargs):
+    return JLT(depth=12, hidden_size=768, num_heads=12, patch_size=2, **kwargs)
 
-def JiT_B_16(**kwargs):
-    return JiT(depth=12, hidden_size=768, num_heads=12, patch_size=16, **kwargs)
+def JLT_B_16(**kwargs):
+    return JLT(depth=12, hidden_size=768, num_heads=12, patch_size=16, **kwargs)
 
-def JiT_B_32(**kwargs):
-    return JiT(depth=12, hidden_size=768, num_heads=12, patch_size=32, **kwargs)
+def JLT_B_32(**kwargs):
+    return JLT(depth=12, hidden_size=768, num_heads=12, patch_size=32, **kwargs)
 
-def JiT_L_16(**kwargs):
-    return JiT(depth=24, hidden_size=1024, num_heads=16, patch_size=16, **kwargs)
+def JLT_L_1(**kwargs):
+    return JLT(depth=24, hidden_size=1024, num_heads=16, patch_size=1, **kwargs)
 
-def JiT_L_32(**kwargs):
-    return JiT(depth=24, hidden_size=1024, num_heads=16, patch_size=32, **kwargs)
+def JLT_L_16(**kwargs):
+    return JLT(depth=24, hidden_size=1024, num_heads=16, patch_size=16, **kwargs)
 
-def JiT_H_16(**kwargs):
-    return JiT(depth=32, hidden_size=1280, num_heads=16, patch_size=16, **kwargs)
+def JLT_L_32(**kwargs):
+    return JLT(depth=24, hidden_size=1024, num_heads=16, patch_size=32, **kwargs)
 
-def JiT_H_32(**kwargs):
-    return JiT(depth=32, hidden_size=1280, num_heads=16, patch_size=32, **kwargs)
+def JLT_H_1(**kwargs):
+    return JLT(depth=32, hidden_size=1280, num_heads=16, patch_size=1, **kwargs)
+
+def JLT_H_16(**kwargs):
+    return JLT(depth=32, hidden_size=1280, num_heads=16, patch_size=16, **kwargs)
+
+def JLT_H_32(**kwargs):
+    return JLT(depth=32, hidden_size=1280, num_heads=16, patch_size=32, **kwargs)
 
 
-JiT_models = {
-    'JiT-B/1': JiT_B_1,
-    'JiT-B/2': JiT_B_2,
-    'JiT-B/16': JiT_B_16,
-    'JiT-B/32': JiT_B_32,
-    'JiT-L/16': JiT_L_16,
-    'JiT-L/32': JiT_L_32,
-    'JiT-H/16': JiT_H_16,
-    'JiT-H/32': JiT_H_32,
+# Backward compatibility aliases
+JiT_B_1 = JLT_B_1
+JiT_B_2 = JLT_B_2
+JiT_B_16 = JLT_B_16
+JiT_B_32 = JLT_B_32
+JiT_L_1 = JLT_L_1
+JiT_L_16 = JLT_L_16
+JiT_L_32 = JLT_L_32
+JiT_H_1 = JLT_H_1
+JiT_H_16 = JLT_H_16
+JiT_H_32 = JLT_H_32
+
+
+JLT_models = {
+    'JLT-B/1': JLT_B_1,
+    'JLT-B/2': JLT_B_2,
+    'JLT-B/16': JLT_B_16,
+    'JLT-B/32': JLT_B_32,
+    'JLT-L/1': JLT_L_1,
+    'JLT-L/16': JLT_L_16,
+    'JLT-L/32': JLT_L_32,
+    'JLT-H/1': JLT_H_1,
+    'JLT-H/16': JLT_H_16,
+    'JLT-H/32': JLT_H_32,
+    # Backward compatibility
+    'JiT-B/1': JLT_B_1,
+    'JiT-B/2': JLT_B_2,
+    'JiT-B/16': JLT_B_16,
+    'JiT-B/32': JLT_B_32,
+    'JiT-L/1': JLT_L_1,
+    'JiT-L/16': JLT_L_16,
+    'JiT-L/32': JLT_L_32,
+    'JiT-H/1': JLT_H_1,
+    'JiT-H/16': JLT_H_16,
+    'JiT-H/32': JLT_H_32,
 }
+
+JiT_models = JLT_models

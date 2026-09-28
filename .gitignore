@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Editor artifacts
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Experiment outputs and checkpoints
+output_dir/
+eval_output/
+fid_stats/
+wandb/
+.cache/
+hf_cache/

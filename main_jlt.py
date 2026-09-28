@@ -17,17 +17,17 @@ from util.crop import center_crop_arr
 import util.misc as misc
 
 import copy
-from engine_jit import train_one_epoch, evaluate
+from engine_jlt import train_one_epoch, evaluate
 
 from denoiser import Denoiser
 from latent_dataset import Flux2LatentDataset
 
 
 def get_args_parser():
-    parser = argparse.ArgumentParser('JiT', add_help=False)
+    parser = argparse.ArgumentParser('JLT', add_help=False)
 
     # architecture
-    parser.add_argument('--model', default='JiT-B/16', type=str, metavar='MODEL',
+    parser.add_argument('--model', default='JLT-B/1', type=str, metavar='MODEL',
                         help='Name of the model to train')
     parser.add_argument('--img_size', default=256, type=int, help='Image size')
     parser.add_argument('--attn_dropout', type=float, default=0.0, help='Attention dropout rate')
@@ -130,7 +130,7 @@ def get_args_parser():
                         help='Path to the dataset (ImageFolder root; Parquet dir; or pre-encoded latent shard dir)')
     parser.add_argument('--class_num', default=1000, type=int)
     parser.add_argument('--use_latent_cache', action='store_true',
-                        help='Load pre-encoded latent shards (safetensors) produced by encode_vae_latents.py. '
+                        help='Load pre-encoded latent shards (safetensors) produced by prepare_ref.py. '
                              'Dataset returns (latent, label); combine with identity-VAE denoiser.')
     parser.add_argument('--use_parquet', action='store_true',
                         help='Load ImageNet from HuggingFace-style parquet files (memory-mapped via `datasets`).')
@@ -147,7 +147,7 @@ def get_args_parser():
     parser.add_argument('--log_freq', default=100, type=int)
 
     # wandb
-    parser.add_argument('--wandb_project', default='JiT', type=str,
+    parser.add_argument('--wandb_project', default='JLT', type=str,
                         help='wandb project name')
     parser.add_argument('--wandb_name', default=None, type=str,
                         help='wandb run name; defaults to output_dir basename')

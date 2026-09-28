@@ -1,3 +1,6 @@
+"""Image center cropping utility.
+"""
+
 import numpy as np
 from PIL import Image
 

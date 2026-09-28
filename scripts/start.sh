@@ -1,15 +1,18 @@
 #!/bin/bash
-# One-shot JiT training launcher on ImageNet (parquet).
+# One-shot JLT training launcher on ImageNet (parquet).
 #
 # Usage:
-#   ./start.sh              # default: all 8 GPUs
-#   ./start.sh 0,1,2,3      # subset
+#   ./scripts/start.sh              # default: all 8 GPUs
+#   ./scripts/start.sh 0,1,2,3      # subset
 set -euo pipefail
+
+# Ensure execution from repository root
+cd "$(dirname "$0")/.."
 
 GPU_IDS=${1:-0,1,2,3,4,5,6,7}
 NUM_PROCS=$(awk -F',' '{print NF}' <<< "${GPU_IDS}")
 
-OUTPUT_DIR=/mnt/raid0/JiT/output_dir/JiT-B-16-256
+OUTPUT_DIR=/mnt/raid0/JLT/output_dir/JLT-B-16-256
 mkdir -p "${OUTPUT_DIR}"
 
 CUDA_VISIBLE_DEVICES="${GPU_IDS}" \
@@ -18,8 +21,8 @@ accelerate launch \
     --num_machines=1 \
     --mixed_precision=no \
     --main_process_port=29500 \
-    main_jit.py \
-        --model JiT-B/16 \
+    main_jlt.py \
+        --model JLT-B/16 \
         --proj_dropout 0.0 \
         --P_mean -0.8 --P_std 0.8 \
         --img_size 256 --noise_scale 1.0 \
@@ -30,6 +33,6 @@ accelerate launch \
         --eval_freq 40 --online_eval \
         --num_workers 12 \
         --data_path /mnt/raid0/LightningDiT/data --use_parquet \
-        --cache_dir /mnt/raid0/JiT/hf_cache \
+        --cache_dir /mnt/raid0/JLT/hf_cache \
         --output_dir "${OUTPUT_DIR}" \
-        --wandb_project ciallo --wandb_name JiT-B-16-256 --wandb_mode online
+        --wandb_project ciallo --wandb_name JLT-B-16-256 --wandb_mode online

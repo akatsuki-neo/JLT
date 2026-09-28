@@ -1,6 +1,6 @@
 """Efficient random-access dataset for pre-encoded FLUX2 latents.
 
-Latents are produced by ``encode_vae_latents.py`` and stored as sharded
+Latents are produced by ``prepare_ref.py`` and stored as sharded
 ``safetensors`` files. Each shard contains:
 
   - ``latents``      : (N, C, H, W) fp16, BN-normalized FLUX2 patchified latents
@@ -18,7 +18,7 @@ Layout on disk::
 
 Note: FLUX2 VAE has a built-in BatchNorm (``vae.bn``) that normalizes the
 encoded latents to ~zero-mean / ~unit-variance at encode time. The encoder
-in ``encode_vae_latents.py`` mirrors that BN normalization, so the latents
+mirrors that BN normalization, so the latents
 on disk are ALREADY normalized — there is no separate stats / normalize step
 inside this dataset.
 
@@ -129,7 +129,7 @@ class Flux2LatentDataset(Dataset):
     Parameters
     ----------
     data_dir:
-        Directory produced by ``encode_vae_latents.py`` (contains
+        Directory produced by ``prepare_ref.py`` (contains
         ``latents_rank*_shard*.safetensors``).
     use_flip:
         If ``True`` (default), randomly return the cached horizontally-flipped

@@ -164,7 +164,7 @@ class HuggingFaceImageNetDataset(Dataset):
         Args:
             data_dir: Path to directory containing parquet files
             split: Dataset split ("train" or "validation")
-            transform: Transform to apply to images (use JIT's transform)
+            transform: Transform to apply to images (use JLT's transform)
             cache_dir: Directory to cache the dataset
         """
         try:

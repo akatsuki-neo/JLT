@@ -134,9 +134,9 @@ def evaluate(accelerator, model_without_ddp, args, epoch, batch_size=64, log_ste
     # compute FID and IS (main process only; torch_fidelity reads the full folder)
     if accelerator.is_main_process:
         if args.img_size == 256:
-            fid_statistics_file = 'fid_stats/jit_in256_stats.npz'
+            fid_statistics_file = 'fid_stats/jlt_in256_stats.npz' if os.path.exists('fid_stats/jlt_in256_stats.npz') else 'fid_stats/jit_in256_stats.npz'
         elif args.img_size == 512:
-            fid_statistics_file = 'fid_stats/jit_in512_stats.npz'
+            fid_statistics_file = 'fid_stats/jlt_in512_stats.npz' if os.path.exists('fid_stats/jlt_in512_stats.npz') else 'fid_stats/jit_in512_stats.npz'
         else:
             raise NotImplementedError
         metrics_dict = torch_fidelity.calculate_metrics(

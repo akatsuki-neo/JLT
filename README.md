@@ -39,7 +39,7 @@ git clone https://github.com/akatsuki-neo/JLT.git
 cd JLT
 
 conda env create -f environment.yaml
-conda activate jit
+conda activate jlt
 
 pip install accelerate
 pip install torch-fidelity
@@ -67,21 +67,21 @@ This produces safetensor latent shards in `/path/to/imagenet_latents_256`.
 The checked-in launcher trains JLT-B/1 (clean latent, patch 1 on the 16×16 FLUX grid):
 
 ```bash
-./start_latent_jit_16.sh [GPU_IDS]
+./scripts/start_latent_jlt_16.sh [GPU_IDS]
 
 # Example: GPUs 0-3
-./start_latent_jit_16.sh 0,1,2,3
+./scripts/start_latent_jlt_16.sh 0,1,2,3
 ```
 
 That script uses batch size 256, gradient accumulation 2, base learning rate 5e-5, CFG 2.9, and 40 epochs. The reported paper runs use the same optimizer recipe for 200 epochs (about 250K steps) at Base, Large, and Huge.
 
-`--flow_matching` switches the network to direct velocity prediction. The patch-2 launcher is `start_latent_jit_32.sh`. The matched velocity baseline is `start_latent_v_32.sh`.
+`--flow_matching` switches the network to direct velocity prediction. The patch-2 launcher is `scripts/start_latent_jlt_32.sh`. The matched velocity baseline is `scripts/start_latent_v_32.sh`.
 
 ### Key Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `--model` | Architecture name: `JiT-B/1`, `JiT-B/2`, `JiT-B/16` |
+| `--model` | Architecture name: `JLT-B/1`, `JLT-B/2`, `JLT-B/16` |
 | `--vae_type` | `flux2` for the FLUX.2 latent space |
 | `--flow_matching` | Predict velocity directly instead of the clean latent |
 | `--batch_size` | Micro-batch per GPU |
@@ -99,8 +99,8 @@ Download the checkpoint from HuggingFace and run evaluation:
 ```bash
 huggingface-cli download dawn-neo/JLT checkpoint-last.pth
 
-python main_jit.py \
-    --model JiT-B/1 \
+python main_jlt.py \
+    --model JLT-B/1 \
     --vae_type flux2 \
     --img_size 256 \
     --data_path /path/to/imagenet_latents_256 \

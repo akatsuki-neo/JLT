@@ -1,3 +1,6 @@
+"""Learning rate scheduling utilities.
+"""
+
 import math
 
 

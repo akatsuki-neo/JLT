@@ -1,3 +1,6 @@
+"""Model utility layers and functions (RoPE, RMSNorm, etc.).
+"""
+
 # --------------------------------------------------------
 # References:
 # Lightning-DiT: https://github.com/hustvl/LightningDiT

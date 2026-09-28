@@ -1,3 +1,6 @@
+"""Pre-process and center-crop ImageNet images.
+"""
+
 import os
 import argparse
 from torchvision import transforms, datasets

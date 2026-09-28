@@ -1,4 +1,4 @@
-name: jit
+name: jlt
 channels:
   - pytorch
   - defaults

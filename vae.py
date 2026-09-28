@@ -1,4 +1,4 @@
-"""VAE wrappers for JiT.
+"""VAE wrappers for JLT.
 
 Contract (all subclasses):
   encode(image) -> latent ready to feed the diffusion net
@@ -59,7 +59,7 @@ def _flux2_unpatchify(latents):
 
 
 class Flux2VAE(nn.Module):
-    """Black-Forest FLUX.2 VAE wrapped as a JiT VAE layer.
+    """Black-Forest FLUX.2 VAE wrapped as a JLT VAE layer.
 
     Encoding (image -> latent ready for DiT):
       1. vae.encode(x).latent_dist.mode()                       # deterministic

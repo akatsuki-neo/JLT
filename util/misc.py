@@ -1,3 +1,6 @@
+"""Miscellaneous training, metric logging, and distributed utilities.
+"""
+
 import builtins
 import datetime
 import os

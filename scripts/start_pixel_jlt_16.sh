@@ -1,16 +1,19 @@
 #!/bin/bash
-# JiT on ImageNet, pixel-space, image 256, patch 16 (JiT-B/16 recipe).
+# JLT on ImageNet, pixel-space, image 256, patch 16 (JLT-B/16 recipe).
 #
 # Usage:
-#   ./start_pixel_jit_16.sh              # default: all 8 GPUs
-#   ./start_pixel_jit_16.sh 0,1,2,3      # subset
+#   ./scripts/start_pixel_jlt_16.sh              # default: all 8 GPUs
+#   ./scripts/start_pixel_jlt_16.sh 0,1,2,3      # subset
 set -euo pipefail
+
+# Ensure execution from repository root
+cd "$(dirname "$0")/.."
 
 GPU_IDS=${1:-0,1,2,3,4,5,6,7}
 NUM_PROCS=$(awk -F',' '{print NF}' <<< "${GPU_IDS}")
 
-RUN=pixel-JiT-B-16
-OUTPUT_DIR=/mnt/raid0/JiT/output_dir/${RUN}
+RUN=pixel-JLT-B-16
+OUTPUT_DIR=/mnt/raid0/JLT/output_dir/${RUN}
 mkdir -p "${OUTPUT_DIR}"
 
 CUDA_VISIBLE_DEVICES="${GPU_IDS}" \
@@ -19,8 +22,8 @@ accelerate launch \
     --num_machines=1 \
     --mixed_precision=bf16 \
     --main_process_port="${MASTER_PORT:-29500}" \
-    main_jit.py \
-        --model JiT-B/16 \
+    main_jlt.py \
+        --model JLT-B/16 \
         --vae_type identity \
         --proj_dropout 0.0 \
         --P_mean -0.8 --P_std 0.8 \
@@ -32,6 +35,6 @@ accelerate launch \
         --eval_freq 10 --online_eval \
         --num_workers 12 \
         --data_path /mnt/raid0/LightningDiT/data --use_parquet \
-        --cache_dir /mnt/raid0/JiT/hf_cache \
+        --cache_dir /mnt/raid0/JLT/hf_cache \
         --output_dir "${OUTPUT_DIR}" \
         --wandb_project ciallo --wandb_name "${RUN}" --wandb_mode online

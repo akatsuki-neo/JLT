@@ -1,12 +1,12 @@
 import torch
 import torch.nn as nn
 from torch.func import functional_call
-from model_jit import JiT_models
+from model_jlt import JLT_models, JiT_models
 from vae import build_vae
 
 
 MODEL_REGISTRY = {}
-MODEL_REGISTRY.update(JiT_models)
+MODEL_REGISTRY.update(JLT_models)
 
 
 class Denoiser(nn.Module):
