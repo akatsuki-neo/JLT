@@ -176,7 +176,7 @@ Guided ImageNet 256×256 numbers below are taken from the cited reports. JLT-H/1
 | DiffiT | VAE | — | 561M | 1.73 | 276.49 |
 | JiT-H/16 | pixel | — | 953M | 1.86 | 303.40 |
 | RiT | DINOv2 | DINOv2 | 676M | **1.14** | — |
-| **JLT-H/1** | FLUX.2 VAE | — | 951.3M | 1.19 | 271.96 |
+| **JLT-H/1** | VAE | — | 951.3M | 1.19 | 271.96 |
 
 ### Other Checks
 
